@@ -1,0 +1,26 @@
+# Transform Parameters
+translate_x: 0.0
+translate_y: 0.0
+translate_z: 1.0
+rotate_roll: 0.0
+rotate_pitch: 0.0
+rotate_yaw: 0.0
+
+# DBSCAN Parameters
+resolution: 0.3
+nearest_min_distance: 5
+min_cluster_pts: 50
+eps: 0.3
+
+# Crop Parameters
+centroid_x: 0.0
+centroid_y: 0.0
+centroid_z: 5.0
+
+dimension_x: 39.4
+dimension_y: 19.4
+dimension_z: 9.7
+
+# Run Parameters
+spin_once: false
+ros_rate: 2.0

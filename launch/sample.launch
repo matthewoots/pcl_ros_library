@@ -1,0 +1,8 @@
+<launch>
+
+<node pkg="pcl_ros_lib" type="pcl_ros_lib_node" name="pcl_ros_lib_node" output="screen">
+    <param name="file_location" type="string" value="$(find pcl_ros_lib)/data/cloud.pcd"/>
+    <rosparam command="load" file="$(find pcl_ros_lib)/config/pcl_ros_lib.yaml" />
+</node>
+
+</launch>
