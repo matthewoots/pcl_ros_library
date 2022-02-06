@@ -40,210 +40,81 @@
 #include <vector>
 
 #include <geometry_msgs/Point.h>
+#include "pcl_ros_lib/point_array.h"
 
-// #include "rrtstar_ros/rrt_array.h"
-// #include "rrtstar_ros/rrt_data.h"
-// #include "rrtstar_ros/start_end_markers.h"
+using namespace std;
+using namespace Eigen;
 
-// using namespace std;
-// using namespace Eigen;
-
-// ros::Publisher rrt_marker_pub;
-// ros::Publisher start_end_marker_pub;
-// ros::Publisher bs_marker_pub;
-
-// ros::Subscriber bs_message;
-// ros::Subscriber rrt_message;
-// ros::Subscriber start_end_message;
-
-// void rrt_callback(const rrtstar_ros::rrt_array::ConstPtr &msg)
-// {
-//   rrtstar_ros::rrt_array rrt = *msg;
-
-//   visualization_msgs::Marker rrt_points, line_strip;
-//   rrt_points.header.frame_id = line_strip.header.frame_id = "/map";
-//   rrt_points.header.stamp = line_strip.header.stamp = ros::Time::now();
-//   rrt_points.ns = line_strip.ns = "rrt_visualization_points";
-//   rrt_points.action = line_strip.action = visualization_msgs::Marker::ADD;
-//   rrt_points.pose.orientation.w = line_strip.pose.orientation.w = 1.0;
-
-//   rrt_points.id = 0;
-//   line_strip.id = 1;
-
-//   rrt_points.type = visualization_msgs::Marker::POINTS;
-//   line_strip.type = visualization_msgs::Marker::LINE_STRIP;
+ros::Publisher object_marker_pub;
+ros::Subscriber object_point_sub;
 
 
-//   // POINTS markers use x and y scale for width/height respectively
-//   rrt_points.scale.x = 0.2;
-//   rrt_points.scale.y = 0.2;
+void object_point_callback(const pcl_ros_lib::point_array::ConstPtr &msg)
+{
+  pcl_ros_lib::point_array _points = *msg;
 
-//   // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
-//   line_strip.scale.x = 0.1;
+  visualization_msgs::Marker object_points, text_points;
+  object_points.header.frame_id = text_points.header.frame_id = "/map";
+  object_points.header.stamp = text_points.header.stamp = ros::Time::now();
+  object_points.ns = text_points.ns = "object_visualization_points";
+  object_points.action = text_points.action = visualization_msgs::Marker::ADD;
+  object_points.pose.orientation.w = text_points.pose.orientation.w = 1.0;
 
-//   // Points color
-//   rrt_points.color.g = 1.0f;
-//   rrt_points.color.b = 1.0f;
-//   rrt_points.color.a = 1.0f;
+  object_points.id = 0;
 
-//   // Line strip color
-//   line_strip.color.r = 1.0f;
-//   line_strip.color.b = 1.0f;
-//   line_strip.color.a = 1.0f;
+  object_points.type = visualization_msgs::Marker::POINTS;
+  text_points.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
 
-//   int rrt_size = rrt.array.size();
-//   // Create the vertices for the points and lines
-//   for (int i = 0; i < rrt_size; i++)
-//   {
-//     geometry_msgs::Point p;
-//     p.x = rrt.array[i].x;
-//     p.y = rrt.array[i].y;
-//     p.z = rrt.array[i].z;
+  // POINTS markers use x and y scale for width/height respectively
+  object_points.scale.x = 0.3;
+  object_points.scale.y = 0.3;
 
-//     rrt_points.points.push_back(p);
-//     line_strip.points.push_back(p);
-//   }
+  // Points color
+  object_points.color.r = 1.0f;
+  object_points.color.g = 0.0f;
+  object_points.color.b = 0.0f;
+  object_points.color.a = 0.5f;
 
-//   rrt_marker_pub.publish(rrt_points);
-//   rrt_marker_pub.publish(line_strip);
-// }
+  int _size = _points.array.size();
+  // Create the vertices for the points and lines
+  for (int i = 0; i < _size; i++)
+  {
+    object_points.points.push_back(_points.array[i]);
 
-// void bs_callback(const rrtstar_ros::rrt_array::ConstPtr &msg)
-// {
-//   rrtstar_ros::rrt_array rrt = *msg;
+    text_points.id = i + 1;
+    text_points.scale.z = 0.5;
+    text_points.color.r = 1.0f;
+    text_points.color.g = 0.0f;
+    text_points.color.b = 0.0f;
+    text_points.color.a = 1.0f;
 
-//   visualization_msgs::Marker cp_points, line_strip;
-//   cp_points.header.frame_id = line_strip.header.frame_id = "/map";
-//   cp_points.header.stamp = line_strip.header.stamp = ros::Time::now();
-//   cp_points.ns = line_strip.ns = "bspline_visualization_points";
-//   cp_points.action = line_strip.action = visualization_msgs::Marker::ADD;
-//   cp_points.pose.orientation.w = line_strip.pose.orientation.w = 1.0;
+    text_points.pose.position = _points.array[i];
+    text_points.pose.position.z += 1.2;
 
-//   cp_points.id = 0;
-//   line_strip.id = 1;
+    text_points.text = "Cluster Index (" + to_string(i) + ")";
+    object_marker_pub.publish(text_points);
+  }
 
-//   cp_points.type = visualization_msgs::Marker::POINTS;
-//   line_strip.type = visualization_msgs::Marker::LINE_STRIP;
-
-
-//   // POINTS markers use x and y scale for width/height respectively
-//   cp_points.scale.x = 0.2;
-//   cp_points.scale.y = 0.2;
-
-//   // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
-//   line_strip.scale.x = 0.1;
-
-//   // Points color
-//   cp_points.color.r = 1.0f;
-//   cp_points.color.g = 1.0f;
-//   cp_points.color.a = 1.0f;
-
-//   // Line strip color
-//   line_strip.color.b = 1.0f;
-//   line_strip.color.g = 1.0f;
-//   line_strip.color.a = 1.0f;
-
-//   int rrt_size = rrt.array.size();
-//   // Create the vertices for the points and lines
-//   for (int i = 0; i < rrt_size; i++)
-//   {
-//     geometry_msgs::Point p;
-//     p.x = rrt.array[i].x;
-//     p.y = rrt.array[i].y;
-//     p.z = rrt.array[i].z;
-
-//     cp_points.points.push_back(p);
-//     line_strip.points.push_back(p);
-//   }
-
-//   bs_marker_pub.publish(cp_points);
-//   bs_marker_pub.publish(line_strip);
-// }
-
-// void start_end_callback(const rrtstar_ros::start_end_markers::ConstPtr &msg)
-// {
-//   rrtstar_ros::start_end_markers _msg = *msg;
-//   int size_markers = _msg.start.size();
-
-//   visualization_msgs::Marker start;
-//   visualization_msgs::Marker end;
-//   start.header.frame_id = end.header.frame_id = "/map";
-//   start.header.stamp = end.header.stamp = ros::Time::now();
-//   start.ns = end.ns = "rrtstar_visualization";
-//   start.action = end.action = visualization_msgs::Marker::ADD;
-//   start.pose.orientation.w = end.pose.orientation.w = 1.0;
-
-//   start.id = 0;
-//   end.id = 1;
-
-//   start.type = visualization_msgs::Marker::POINTS;
-//   end.type = visualization_msgs::Marker::POINTS;
-
-
-//   // POINTS markers use x and y scale for width/height respectively
-//   start.scale.x = 0.4;
-//   start.scale.y = 0.4;
-
-//   // POINTS markers use x and y scale for width/height respectively
-//   end.scale.x = 0.4;
-//   end.scale.y = 0.4;
-
-//   // // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
-//   // line_strip.scale.x = 0.03;
-
-//   // Points are green
-//   start.color.g = 1.0;
-//   start.color.a = 1.0;
-
-//   // Points are red
-//   end.color.r = 1.0;
-//   end.color.a = 1.0;
-
-//   // Create the vertices for the points and lines
-//   for (int i = 0; i < size_markers; i++)
-//   {
-//     geometry_msgs::Point s = _msg.start[i];
-//     geometry_msgs::Point e = _msg.end[i];
-
-//     start.points.push_back(s);
-//     end.points.push_back(e);
-//   }
-
-//   start_end_marker_pub.publish(start);
-//   start_end_marker_pub.publish(end);
-// }
+  object_marker_pub.publish(object_points);
+}
 
 int main( int argc, char** argv )
 {
-  // double rate = 1.0;
-  // int _size;  
-  // ros::init(argc, argv, "rrtstar_visualization");
-  // ros::NodeHandle n("~");
+  double rate = 1.0;
+  int _size;  
+  ros::init(argc, argv, "pcl_ros_lib_visualization");
+  ros::NodeHandle n("~");
   
-  // n.param<int>("marker_size", _size, 4);
+  n.param<int>("marker_size", _size, 4);
 
-  // bs_marker_pub = n.advertise<visualization_msgs::Marker>(
-  //       "/bs_visualization_marker", 10);
-  // rrt_marker_pub = n.advertise<visualization_msgs::Marker>(
-  //       "/rrt_visualization_marker", 10);
-  // start_end_marker_pub = n.advertise<visualization_msgs::Marker>(
-  //       "/start_end_visualization_marker", 10);
-  // bs_message = n.subscribe<rrtstar_ros::rrt_array>(
-  //       "/bs", 10, &bs_callback);      
-  // rrt_message = n.subscribe<rrtstar_ros::rrt_array>(
-  //       "/rrt", 10, &rrt_callback);
-  // start_end_message = n.subscribe<rrtstar_ros::start_end_markers>(
-  //       "/start_end_markers", 10, &start_end_callback);
-
+  object_marker_pub = n.advertise<visualization_msgs::Marker>(
+    "/object_point_marker", 10);    
+  object_point_sub = n.subscribe<pcl_ros_lib::point_array>(
+    "/object_points", 10, &object_point_callback);
+  
   // ros::Rate r(rate);
-
-  // ros::spinOnce();
+  ros::spin();
+  
 
   return 0;
 }
-
-
-  
-
-
-

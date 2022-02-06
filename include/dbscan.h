@@ -77,7 +77,7 @@ class dbscan
         vector<point> full_point_cloud;
         vector<vector<int>> color;
 
-        vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> pc_cluster_vector;
+        vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> store_cluster_pc; // Initialize the store point cloud
 
         double _resolution; // Resolution of octree
         int _nearest_min_distance;
@@ -231,7 +231,7 @@ class dbscan
                         ps.push(&core_cloud[v->corepts[j]]);
                     }
                 }
-                printf("%s[dbscan.h] Cluster %d, Points number %d \n", KBLU, outcluster, pts_num);
+                // printf("%s[dbscan.h] Cluster %d, Points number %d \n", KBLU, outcluster, pts_num);
                 cluster_pts_num.push_back(pts_num);
                 outcluster++;
             }
@@ -260,7 +260,7 @@ class dbscan
                         color_rgb.push_back(rand() % 255 + 1);
 
                     color.push_back(color_rgb);
-                    printf("%s[dbscan.h] Cluster %d = Color %d %d %d \n", KBLU, i, color[i][0], color[i][1], color[i][2]);
+                    // printf("%s[dbscan.h] Cluster %d = Color %d %d %d \n", KBLU, i, color[i][0], color[i][1], color[i][2]);
                     acceptable_size++;
                 }
             }
@@ -269,6 +269,9 @@ class dbscan
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster_cloud_tmp(new pcl::PointCloud<pcl::PointXYZRGB>);
             cluster_cloud_tmp->points.resize(filtered_points_cloud->points.size());
             cluster_cloud = cluster_cloud_tmp;
+
+            vector<pcl::PointXYZ> pc_cluster_vector[acceptable_size];
+
             // Color different clusters
             for (size_t i = 0; i < len; i++)
             {
@@ -282,6 +285,9 @@ class dbscan
                     cluster_cloud->points[i].r = color[full_point_cloud[i].cluster][0];
                     cluster_cloud->points[i].g = color[full_point_cloud[i].cluster][1];
                     cluster_cloud->points[i].b = color[full_point_cloud[i].cluster][2];
+
+                    // Store the point clouds into seperate point vectors
+                    pc_cluster_vector[full_point_cloud[i].cluster].push_back(filtered_points_cloud->points[i]);
                 }
                 else 
                 {
@@ -291,10 +297,36 @@ class dbscan
                     cluster_cloud->points[i].b = 255;
                 }
             }
+
+            store_cluster_pc.resize(acceptable_size);
+
+            size_t total_points = 0; 
+            for (size_t i = 0; i < acceptable_size; i++)
+            {
+                printf("%s[dbscan.h] Cluster %lu of size %lu with color %d %d %d\n", KCYN, i, pc_cluster_vector[i].size(), color[i][0], color[i][1], color[i][2]);
+                total_points += pc_cluster_vector[i].size();
+
+                pcl::PointCloud<pcl::PointXYZ>::Ptr cluster_tmp(new pcl::PointCloud<pcl::PointXYZ>);
+                cluster_tmp->points.resize(pc_cluster_vector[i].size());
+                store_cluster_pc[i] = cluster_tmp;
+                
+                for (size_t j = 0; j < pc_cluster_vector[i].size(); j++)
+                {
+                    store_cluster_pc[i]->points[j].x = pc_cluster_vector[i][j].x;
+                    store_cluster_pc[i]->points[j].y = pc_cluster_vector[i][j].y;
+                    store_cluster_pc[i]->points[j].z = pc_cluster_vector[i][j].z;
+                }
+            }
+
+            printf("%s[dbscan.h] Total Cluster cloud size %lu\n", KCYN, total_points);            
         }
 
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr get_clustered_cloud() {return cluster_cloud;}
         
         vector<vector<int>> get_color_identifier() {return color;}
+
+        pcl::PointCloud<pcl::PointXYZ>::Ptr get_cluster_pc_info(int idx) {return store_cluster_pc[idx];}
+
+        size_t get_cluster_pc_size() {return store_cluster_pc.size();}
 
 };

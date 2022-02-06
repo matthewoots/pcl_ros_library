@@ -61,12 +61,13 @@ class ros_node_class
 {
 private:
     ros::NodeHandle _nh;
-    ros::Publisher full_pcl_pub, altered_pcl_pub, cluster_pcl_pub;
+    ros::Publisher full_pcl_pub, altered_pcl_pub, cluster_pcl_pub, object_point_pub;
 
 public:
     sensor_msgs::PointCloud2 pcl_original;
     sensor_msgs::PointCloud2 pcl_altered;
     sensor_msgs::PointCloud2 pcl_clustered;
+    vector<geometry_msgs::Point> center_points;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pc;
 
     ros_node_class(ros::NodeHandle &nodeHandle)
@@ -74,6 +75,7 @@ public:
         full_pcl_pub = _nh.advertise<sensor_msgs::PointCloud2>("/full_pcl", 10);
         altered_pcl_pub = _nh.advertise<sensor_msgs::PointCloud2>("/altered_pcl", 10);
         cluster_pcl_pub = _nh.advertise<sensor_msgs::PointCloud2>("/cluster_pcl", 10);
+        object_point_pub = _nh.advertise<pcl_ros_lib::point_array>("/object_points", 10);
         printf("%s[main.cpp] Constructor Setup Ready! \n", KGRN);
     }
     ~ros_node_class(){};
@@ -97,6 +99,16 @@ public:
         pcl_clustered.header.frame_id = "/map";
         cluster_pcl_pub.publish(pcl_clustered); 
         // printf("%s[main.cpp] Published clustered_cloud! \n", KGRN);
+    }
+
+    void object_center_publisher() 
+    {
+        pcl_ros_lib::point_array msg;
+        for (int i = 0; i < center_points.size(); i++)
+            msg.array.push_back(center_points[i]);
+
+        object_point_pub.publish(msg); 
+        // printf("%s[main.cpp] Published object_point! \n", KGRN);
     }
 };
 
@@ -223,11 +235,26 @@ int main(int argc, char **argv)
 
     ros_node_class.pcl_original = full_cloud;
 
+    int total_cluster_size = _dbscan.get_cluster_pc_size();
+    for (int i = 0; i < total_cluster_size; i++)
+    {
+        pcl::PointCloud<pcl::PointXYZ>::Ptr test_cloud = _dbscan.get_cluster_pc_info(i);
+        printf("%s[main.cpp] Query cloud idx %d with cluster cloud size %lu\n", KGRN, i, test_cloud->points.size());
+        Vector3d centroid = _common.normalize_all_points(test_cloud);
+        printf("%s[main.cpp] Centroid of Query cloud idx %d = %lf %lf %lf\n", KMAG, i, centroid.x(), centroid.y(), centroid.z());
+        geometry_msgs::Point tmp_point;
+        tmp_point.x = centroid.x();
+        tmp_point.y = centroid.y();
+        tmp_point.z = centroid.z();
+        ros_node_class.center_points.push_back(tmp_point);
+    }
+
     if (_spin_once)
     {
         ros_node_class.full_pcl_publisher();      
         ros_node_class.altered_pcl_publisher();
         ros_node_class.cluster_pcl_publisher();
+        ros_node_class.object_center_publisher();
 
         ros::spinOnce();
         return 0;
@@ -238,6 +265,7 @@ int main(int argc, char **argv)
         ros_node_class.full_pcl_publisher();
         ros_node_class.altered_pcl_publisher();
         ros_node_class.cluster_pcl_publisher();
+        ros_node_class.object_center_publisher();
 
         ros::spinOnce();
         loop_rate.sleep();

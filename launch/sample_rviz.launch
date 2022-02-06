@@ -7,4 +7,8 @@
 
 <node pkg="pcl_ros_lib" type="pcl_ros_lib_visualization_node" name="pcl_ros_lib_visualization_node" output="screen"/>
 
+<node name="rviz" pkg="rviz" type="rviz"
+  args="-d $(find pcl_ros_lib)/rviz/pcl_ros_lib.rviz"
+  />
+
 </launch>

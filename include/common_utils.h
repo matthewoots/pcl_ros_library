@@ -119,6 +119,25 @@ public:
     }
 
     /* 
+    * @brief Get geometry normalized point of all the points in the cloud
+    */
+    Vector3d normalize_all_points(pcl::PointCloud<pcl::PointXYZ>::Ptr _pc)
+    {
+        Vector3d tmp_vector = Vector3d(0,0,0);
+        size_t len = _pc->points.size();
+        for (size_t i = 0; i < len; i++) // Add all the points in the cloud
+        {
+            tmp_vector.x() += _pc->points[i].x;
+            tmp_vector.y() += _pc->points[i].y;
+            tmp_vector.z() += _pc->points[i].z;
+        }
+        tmp_vector.x() = tmp_vector.x() / (int)len;
+        tmp_vector.y() = tmp_vector.y() / (int)len;
+        tmp_vector.z() = tmp_vector.z() / (int)len;
+        return tmp_vector;
+    }
+
+    /* 
     * @brief Convert point cloud from ROS sensor message to 
     * pcl point ptr
     */
