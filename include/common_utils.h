@@ -95,6 +95,37 @@ public:
     }
 
     /* 
+    * @brief Convert csv pointcloud list to vectov<int>
+    */
+    bool UnpackIndex(std::vector<int> *_query, std::string _file_location)
+    {
+        printf("%s[common_utils.h] Trying to open %s \n", KYEL, _file_location.c_str());
+        ifstream file(_file_location);
+        
+        _query->clear();
+        if (!file)
+        {
+            printf("%s[common_utils.h] File not present! \n", KRED);
+            return false;
+        }
+        printf("%s[common_utils.h] Success, found %s \n", KGRN, _file_location.c_str());
+        io::CSVReader<1> in(_file_location);
+
+        in.read_header(io::ignore_extra_column, "idx");
+        double _idx;
+        std::vector<int> idx_vect;
+        // First pass is to get number of rows
+        while (in.read_row(_idx))
+        {
+            idx_vect.push_back(_idx);
+        }
+
+        *_query = idx_vect; 
+        printf("%s[common_utils.h] Completed %s \n", KGRN, KNRM);
+        return true;
+    }
+
+    /* 
     * @brief Convert point cloud from ROS sensor message to 
     * pcl point ptr
     */
@@ -145,15 +176,15 @@ public:
         ros2pcl_converter(sensor_msgs::PointCloud2 _pc)
     {
         pcl::PCLPointCloud2 pcl_pc2;
-        printf("%s[common_utils.h] ros_pcl2 to pcl! \n", KBLU);
+        // printf("%s[common_utils.h] ros_pcl2 to pcl! \n", KBLU);
         pcl_conversions::toPCL(_pc, pcl_pc2);
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr tmp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
         
-        printf("%s[common_utils.h] fromPCLPointCloud2! \n", KBLU);
+        // printf("%s[common_utils.h] fromPCLPointCloud2! \n", KBLU);
         pcl::fromPCLPointCloud2(pcl_pc2, *tmp_cloud);
         
-        printf("%s[common_utils.h] return fromPCLPointCloud2! \n", KBLU);
+        // printf("%s[common_utils.h] return fromPCLPointCloud2! \n", KBLU);
         return tmp_cloud;
     }
 

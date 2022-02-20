@@ -1,0 +1,19 @@
+<launch>
+
+<node pkg="pcl_ros_lib" type="pcl_ros_lib_node" name="pcl_ros_lib_node" output="screen">
+    <param name="file_location" type="string" value="$(find pcl_ros_lib)/data/cloud.pcd"/>
+    <rosparam command="load" file="$(find pcl_ros_lib)/config/pcl_ros_lib.yaml" />
+</node>
+
+<node pkg="pcl_ros_lib" type="pcl_ros_lib_hunting_node" name="pcl_ros_lib_hunting_node" output="screen">
+    <param name="file_location" type="string" value="$(find pcl_ros_lib)/data/idx.csv"/>
+    <rosparam command="load" file="$(find pcl_ros_lib)/config/pcl_hunter.yaml" />
+</node>
+
+<node pkg="pcl_ros_lib" type="pcl_ros_lib_visualization_node" name="pcl_ros_lib_visualization_node" output="screen"/>
+
+<node name="rviz" pkg="rviz" type="rviz"
+  args="-d $(find pcl_ros_lib)/rviz/pcl_ros_lib_hunting.rviz"
+  />
+
+</launch>

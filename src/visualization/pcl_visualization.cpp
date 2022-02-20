@@ -46,8 +46,8 @@
 using namespace std;
 using namespace Eigen;
 
-ros::Publisher object_marker_pub, origin_pub;
-ros::Subscriber object_point_sub;
+ros::Publisher object_marker_pub, origin_pub, object_centroid_marker_pub;
+ros::Subscriber object_point_sub, sub_object_point_sub;
 
 
 void object_point_callback(const pcl_ros_lib::point_array::ConstPtr &msg)
@@ -101,6 +101,43 @@ void object_point_callback(const pcl_ros_lib::point_array::ConstPtr &msg)
   object_marker_pub.publish(object_points);
 }
 
+void sub_centroid_point_callback(const pcl_ros_lib::point_array::ConstPtr &msg)
+{
+  pcl_ros_lib::point_array _points = *msg;
+
+  visualization_msgs::Marker object_points;
+  object_points.header.frame_id = "/map";
+  object_points.header.stamp = ros::Time::now();
+  object_points.ns = "object_centroid_visualization_points";
+  object_points.action = visualization_msgs::Marker::ADD;
+  object_points.pose.orientation.w = 1.0;
+
+  object_points.id = 0;
+
+  object_points.type = visualization_msgs::Marker::POINTS;
+
+  // POINTS markers use x and y scale for width/height respectively
+  object_points.scale.x = 0.15;
+  object_points.scale.y = 0.15;
+
+  // Points color
+  object_points.color.r = 1.0f;
+  object_points.color.g = 1.0f;
+  object_points.color.b = 0.0f;
+  object_points.color.a = 0.5f;
+
+  int _size = _points.array.size();
+  printf("%s[pcl_visualization.cpp] msg_points size = %d\n", KGRN, _size);
+  
+  // Create the vertices for the points and lines
+  for (int i = 0; i < _size; i++)
+  {
+    object_points.points.push_back(_points.array[i]);
+  }
+
+  object_centroid_marker_pub.publish(object_points);
+}
+
 void origin_visualization()
 {
   geometry_msgs::PoseStamped msg;
@@ -126,9 +163,14 @@ int main( int argc, char** argv )
   object_marker_pub = n.advertise<visualization_msgs::Marker>(
     "/object_point_marker", 10);   
   origin_pub = n.advertise<geometry_msgs::PoseStamped>(
-    "/origin", 10);     
+    "/origin", 10); 
+  object_centroid_marker_pub = n.advertise<visualization_msgs::Marker>(
+    "/centroid_object_points", 10);  
+
   object_point_sub = n.subscribe<pcl_ros_lib::point_array>(
     "/object_points", 10, &object_point_callback);
+  sub_object_point_sub = n.subscribe<pcl_ros_lib::point_array>(
+    "/sub_object_points", 10, &sub_centroid_point_callback);
   
   while (ros::ok())
   {

@@ -106,7 +106,7 @@ class dbscan
             // filtered_points_cloud.reset();
             cluster_cloud.reset();
             // cloud.reset();
-            printf("%s[dbscan.h] Clear clouds to initialize\n", KBLU);
+            // printf("%s[dbscan.h] Clear clouds to initialize\n", KBLU);
             store_cluster_pc.clear();
             full_point_cloud.clear();
             core_cloud.clear();
@@ -117,7 +117,7 @@ class dbscan
             _nearest_min_distance = nearest_min_distance;
             _eps = eps;
             _min_cluster_pts = min_cluster_pts;
-            printf("%s[dbscan.h] Initialized\n", KBLU);
+            // printf("%s[dbscan.h] Initialized\n", KBLU);
         }
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr run_filtering(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
@@ -125,11 +125,11 @@ class dbscan
             pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_points_cloud; // Initialize the filtered core point cloud
             pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_points_cloud_tmp(new pcl::PointCloud<pcl::PointXYZ>); // Initialize the tmp core point cloud
             pcl::octree::OctreePointCloudSearch<pcl::PointXYZ> octree(_resolution); // Initialize the octree
-            printf("%s[dbscan.h] Initialize octree \n", KBLU);
+            // printf("%s[dbscan.h] Initialize octree \n", KBLU);
 
             octree.setInputCloud(cloud);
             octree.addPointsFromInputCloud();
-            printf("%s[dbscan.h] Added points to octree \n", KBLU);
+            // printf("%s[dbscan.h] Added points to octree \n", KBLU);
 
             size_t len = cloud->points.size();
             for (size_t i = 0; i < len; i++) // Convert the type of points to class point
@@ -137,7 +137,7 @@ class dbscan
                     point pt = point(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
                     full_point_cloud.push_back(pt);
             }
-            printf("%s[dbscan.h] Converted to points class\n", KBLU);
+            // printf("%s[dbscan.h] Converted to points class\n", KBLU);
             printf("%s[dbscan.h] full_point_cloud size %lu\n", KBLU, full_point_cloud.size());
 
             // Find the core points and put them into the core_cloud(vector<point>)
@@ -161,7 +161,7 @@ class dbscan
             filtered_points_cloud_tmp->points.resize(core_cloud.size());
             filtered_points_cloud = filtered_points_cloud_tmp;
 
-            printf("%s[dbscan.h] Extracting core cloud \n", KBLU);
+            // printf("%s[dbscan.h] Extracting core cloud \n", KBLU);
             //copy the coordinate of points of core_cloud to that of filtered_points_cloud
             for (int i = 0; i < core_cloud.size(); i++)
             {
@@ -169,7 +169,7 @@ class dbscan
                     filtered_points_cloud->points[i].y = core_cloud[i].y;
                     filtered_points_cloud->points[i].z = core_cloud[i].z;
             }
-            printf("%s[dbscan.h] Complete filtering core cloud \n", KBLU);
+            // printf("%s[dbscan.h] Complete filtering core cloud \n", KBLU);
             return filtered_points_cloud;
         }   
 
@@ -192,7 +192,7 @@ class dbscan
                     core_cloud[i].corepts.push_back(pointIdxNKNSearch[j]);
                 }
             }
-            printf("%s[dbscan.h] Find the neighbor core points \n", KBLU);
+            // printf("%s[dbscan.h] Find the neighbor core points \n", KBLU);
 
             // Change the value of cluster for each core point according to if the neighbor core point is density reachable
             int outcluster = 0;
@@ -348,6 +348,8 @@ class dbscan
         vector<vector<int>> get_color_identifier() {return color;}
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr get_cluster_pc_info(int idx) {return store_cluster_pc[idx];}
+
+        vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> get_cluster_pc() {return store_cluster_pc;}
 
         size_t get_cluster_pc_size() {return store_cluster_pc.size();}
 

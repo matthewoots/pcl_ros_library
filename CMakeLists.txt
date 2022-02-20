@@ -18,12 +18,14 @@ find_package(catkin
 add_message_files(
   FILES
   point_array.msg
+  pointcloud2_array.msg
 )
 
 # Generate added messages
 generate_messages(
   DEPENDENCIES
   geometry_msgs
+  sensor_msgs
 )
 
 generate_dynamic_reconfigure_options(
@@ -78,6 +80,10 @@ add_executable(${PROJECT_NAME}_node
 src/main.cpp
 )
 
+add_executable(${PROJECT_NAME}_hunting_node 
+src/hunting.cpp
+)
+
 ## All these are for testing purposes so we can leave them here
 add_executable(${PROJECT_NAME}_visualization_node 
 src/visualization/pcl_visualization.cpp
@@ -97,6 +103,10 @@ src/visualization/pcl_visualization.cpp
 add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(${PROJECT_NAME}_hunting_node
   ${catkin_LIBRARIES}
 )
 

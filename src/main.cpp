@@ -57,14 +57,18 @@
 #define KWHT  "\033[37m"
 
 #include "pcl_ros_lib/point_array.h"
+#include "pcl_ros_lib/pointcloud2_array.h"
 
 using namespace std;
+
+common_utility _common;
 
 class ros_node_class
 {
 private:
     ros::NodeHandle _nh;
-    ros::Publisher full_pcl_pub, altered_pcl_pub, cluster_pcl_pub, object_point_pub;
+    ros::Publisher full_pcl_pub, altered_pcl_pub, cluster_pcl_pub, 
+        object_point_pub, cluster_array_pub;
 
 public:
     sensor_msgs::PointCloud2 pcl_original;
@@ -72,6 +76,8 @@ public:
     sensor_msgs::PointCloud2 pcl_clustered;
     vector<geometry_msgs::Point> center_points;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pc;
+
+    vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> main_store_cluster_pc;
 
     double _resolution; // Resolution of octree
     Vector3d _translate, _rotate; // In degrees
@@ -89,6 +95,7 @@ public:
         altered_pcl_pub = _nh.advertise<sensor_msgs::PointCloud2>("/altered_pcl", 10);
         cluster_pcl_pub = _nh.advertise<sensor_msgs::PointCloud2>("/cluster_pcl", 10);
         object_point_pub = _nh.advertise<pcl_ros_lib::point_array>("/object_points", 10);
+        cluster_array_pub = _nh.advertise<pcl_ros_lib::pointcloud2_array>("/clustered_array_pcl", 10);
         printf("%s[main.cpp] Constructor Setup Ready! \n", KGRN);
     }
     ~ros_node_class(){};
@@ -147,6 +154,17 @@ public:
         object_point_pub.publish(msg); 
         // printf("%s[main.cpp] Published object_point! \n", KGRN);
     }
+
+    void custom_cluster_publisher()
+    {
+        pcl_ros_lib::pointcloud2_array msg;
+        for (int i=0; i < main_store_cluster_pc.size(); i++)
+        {
+            sensor_msgs::PointCloud2 pcl_cluster = _common.pcl2ros_converter(main_store_cluster_pc[i]);
+            msg.array.push_back(pcl_cluster);
+        }
+        cluster_array_pub.publish(msg);
+    }
 };
 
 int main(int argc, char **argv)
@@ -164,8 +182,6 @@ int main(int argc, char **argv)
 
     f = boost::bind(&ros_node_class::dynamic_reconfigure_server, &ros_node_class, _1, _2);
     server.setCallback(f);
-
-    common_utility _common;
     
     // ROS Params
     std::string _file_location;
@@ -253,6 +269,7 @@ int main(int argc, char **argv)
         ros_node_class.pcl_clustered = clear;
         ros_node_class.pcl_original = clear;
 
+        ros_node_class.main_store_cluster_pc.clear();
         ros_node_class.center_points.clear();
         pcl::PointCloud<pcl::PointXYZ>::Ptr db_pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>); // Initialize the db point cloud
 
@@ -338,11 +355,13 @@ int main(int argc, char **argv)
             tmp_point.z = centroid.z();
             ros_node_class.center_points.push_back(tmp_point);
         }
+        ros_node_class.main_store_cluster_pc = _dbscan.get_cluster_pc();
 
         ros_node_class.full_pcl_publisher();
         ros_node_class.altered_pcl_publisher();
         ros_node_class.cluster_pcl_publisher();
         ros_node_class.object_center_publisher();
+        ros_node_class.custom_cluster_publisher();
 
         ros::spinOnce();
 
