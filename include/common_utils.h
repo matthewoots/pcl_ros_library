@@ -45,6 +45,10 @@
 #include <pcl/octree/octree.h>
 #include <pcl/kdtree/kdtree_flann.h>
 
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 #define KNRM  "\033[0m"
 #define KRED  "\033[31m"
 #define KGRN  "\033[32m"
@@ -310,6 +314,52 @@ public:
             linspaced(i) = (linspaced(i-1) + delta);
         }
         return linspaced;
+    }
+
+    pcl::PointCloud<pcl::PointXYZ>::Ptr base_to_transform_pcl(pcl::PointCloud<pcl::PointXYZ>::Ptr _pc, Vector3d rotation, Vector3d translation)
+    {
+        // https://github.com/felipepolido/EigenExamples
+        // for affine3d examples
+        geometry_msgs::Quaternion q;
+        tf2::Quaternion quat_tf;
+        double deg2rad = - 1.0 / 180.0 * 3.1415926535;
+
+        quat_tf.setRPY(rotation.x() * deg2rad, 
+            rotation.y() * deg2rad, 
+            rotation.z() * deg2rad); // Create this quaternion from roll/pitch/yaw (in radians)
+        q = tf2::toMsg(quat_tf);
+        
+        // w,x,y,z
+        Eigen::Quaterniond rot(q.w, q.x, q.y, q.z);
+        rot.normalize();
+
+        Eigen::Quaterniond p;
+        p.w() = 0;
+        p.vec() = - translation;
+        Eigen::Quaterniond rotatedP = rot * p * rot.inverse(); 
+        Eigen::Vector3d rotatedV = rotatedP.vec();
+
+        Eigen::Affine3d aff_t = Eigen::Affine3d::Identity();
+        Eigen::Affine3d aff_r = Eigen::Affine3d::Identity();
+        // aff_t.translation() = - translation;
+        aff_r.translation() = rotatedV;
+        aff_r.linear() = rot.toRotationMatrix();
+        // pcl::PointCloud<pcl::PointXYZ>::Ptr tmp_pcl_trans(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr tmp_pcl_rot(new pcl::PointCloud<pcl::PointXYZ>);
+        // transformPointCloud(*_pc, *tmp_pcl_trans, aff_t, true);
+        transformPointCloud(*_pc, *tmp_pcl_rot, aff_r, true);
+
+        return tmp_pcl_rot;
+
+        // *** Remove multiple conversions that will take up more time ***
+        // *** Replace with solely Eigen calculation ***
+        // sensor_msgs::PointCloud2 ros_pc;
+        // pcl::toROSMsg(*_pc, ros_pc);
+        // // Translate then rotate to temporary frame for point clouds
+        // sensor_msgs::PointCloud2 tmp_transformed_pc = transform_sensor_cloud(ros_pc, - Vector3d(0, 0, 0), - translation);
+        // tmp_transformed_pc = transform_sensor_cloud(tmp_transformed_pc, - rotation, Vector3d(0, 0, 0));
+    
+        // return pcl2_converter(tmp_transformed_pc);
     }
 
 };

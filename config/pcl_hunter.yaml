@@ -11,3 +11,10 @@ eps: 0.2 # The radius for searching neighbor points of octree
 
 # Run Parameters
 ros_rate: 0.3
+
+# Gap Hunter Parameters
+wall_min_height: 0.0
+wall_max_height: 4.0
+wall_length: 4.0
+wall_thickness: 1.0
+wall_resolution: 0.3
