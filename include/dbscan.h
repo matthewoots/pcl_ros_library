@@ -83,15 +83,36 @@ class dbscan
         int _nearest_min_distance;
         float _eps; // The radius for searching neighbor points of octree
         int _min_cluster_pts;
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud; // Initialize the point cloud
-        pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_points_cloud; // Initialize the filtered core point cloud
+        // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud; // Initialize the point cloud
+        // pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_points_cloud; // Initialize the filtered core point cloud
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster_cloud; // Initialize the cluster point cloud
 
     public:
+        // constructor
+        dbscan()
+        {
+            cout<<"Constructor called"<<endl;
+        }
+    
+        // destructor
+        ~dbscan()
+        {
+            cout<<"Destructor called"<<endl;
+        }
+
         void initialization(pcl::PointCloud<pcl::PointXYZ>::Ptr pc, 
             double resolution, int nearest_min_distance, float eps, int min_cluster_pts)
         {
-            cloud = pc;
+            // filtered_points_cloud.reset();
+            cluster_cloud.reset();
+            // cloud.reset();
+            printf("%s[dbscan.h] Clear clouds to initialize\n", KBLU);
+            store_cluster_pc.clear();
+            full_point_cloud.clear();
+            core_cloud.clear();
+            color.clear();
+            
+            // cloud = pc;
             _resolution = resolution;
             _nearest_min_distance = nearest_min_distance;
             _eps = eps;
@@ -99,8 +120,9 @@ class dbscan
             printf("%s[dbscan.h] Initialized\n", KBLU);
         }
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr run_filtering()
+        pcl::PointCloud<pcl::PointXYZ>::Ptr run_filtering(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
         {
+            pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_points_cloud; // Initialize the filtered core point cloud
             pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_points_cloud_tmp(new pcl::PointCloud<pcl::PointXYZ>); // Initialize the tmp core point cloud
             pcl::octree::OctreePointCloudSearch<pcl::PointXYZ> octree(_resolution); // Initialize the octree
             printf("%s[dbscan.h] Initialize octree \n", KBLU);
@@ -151,9 +173,9 @@ class dbscan
             return filtered_points_cloud;
         }   
 
-        void run_clustering()
+        void run_clustering(pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_points_cloud)
         {
-            size_t len = cloud->points.size();
+            size_t len = filtered_points_cloud->points.size();
             
             pcl::octree::OctreePointCloudSearch<pcl::PointXYZ> octree(_resolution);
             octree.setInputCloud(filtered_points_cloud);

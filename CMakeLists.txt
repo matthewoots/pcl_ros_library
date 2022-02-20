@@ -1,22 +1,17 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(pcl_ros_lib)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
-## Find catkin macros and libraries
 find_package(catkin 
-  COMPONENTS
+  REQUIRED COMPONENTS
   geometry_msgs
   roscpp
   std_msgs
-  common_msgs
   tf
   tf2_ros
   tf2_sensor_msgs
-  pcl
   pcl_ros
   message_generation
+  dynamic_reconfigure
 )
 
 # Generate messages in the 'msg' folder
@@ -29,6 +24,10 @@ add_message_files(
 generate_messages(
   DEPENDENCIES
   geometry_msgs
+)
+
+generate_dynamic_reconfigure_options(
+  cfg/pcl_parameters.cfg
 )
 
 find_package(Eigen3 REQUIRED)
@@ -45,9 +44,7 @@ catkin_package(
   geometry_msgs 
   roscpp 
   std_msgs 
-  common_msgs
   tf
-  pcl
   tf2_ros
   
   DEPENDS
@@ -96,6 +93,8 @@ src/visualization/pcl_visualization.cpp
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+# make sure configure headers are built before any node using them
+add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}

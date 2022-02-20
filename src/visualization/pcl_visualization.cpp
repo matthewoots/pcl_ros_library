@@ -1,5 +1,5 @@
 /*
- * rrtstar_visualization.cpp
+ * pcl_visualization.cpp
  *
  * ---------------------------------------------------------------------
  * Copyright (C) 2022 Matthew (matthewoots at gmail.com)
@@ -37,6 +37,7 @@
 #include <math.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <vector>
 
 #include <geometry_msgs/Point.h>
@@ -45,7 +46,7 @@
 using namespace std;
 using namespace Eigen;
 
-ros::Publisher object_marker_pub;
+ros::Publisher object_marker_pub, origin_pub;
 ros::Subscriber object_point_sub;
 
 
@@ -76,6 +77,8 @@ void object_point_callback(const pcl_ros_lib::point_array::ConstPtr &msg)
   object_points.color.a = 0.5f;
 
   int _size = _points.array.size();
+  printf("%s[pcl_visualization.cpp] msg_points size = %d\n", KGRN, _size);
+  
   // Create the vertices for the points and lines
   for (int i = 0; i < _size; i++)
   {
@@ -98,6 +101,19 @@ void object_point_callback(const pcl_ros_lib::point_array::ConstPtr &msg)
   object_marker_pub.publish(object_points);
 }
 
+void origin_visualization()
+{
+  geometry_msgs::PoseStamped msg;
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "/map";
+  msg.pose.position.x = 0;
+  msg.pose.position.y = 0;
+  msg.pose.position.z = 0;
+  msg.pose.orientation.w = 1.0;
+
+  origin_pub.publish(msg);
+}
+
 int main( int argc, char** argv )
 {
   double rate = 1.0;
@@ -108,13 +124,18 @@ int main( int argc, char** argv )
   n.param<int>("marker_size", _size, 4);
 
   object_marker_pub = n.advertise<visualization_msgs::Marker>(
-    "/object_point_marker", 10);    
+    "/object_point_marker", 10);   
+  origin_pub = n.advertise<geometry_msgs::PoseStamped>(
+    "/origin", 10);     
   object_point_sub = n.subscribe<pcl_ros_lib::point_array>(
     "/object_points", 10, &object_point_callback);
   
+  while (ros::ok())
+  {
+    origin_visualization();
+    ros::spinOnce();
+  }
   // ros::Rate r(rate);
-  ros::spin();
-  
 
   return 0;
 }

@@ -1,26 +1,26 @@
 # Transform Parameters
-translate_x: 0.0
-translate_y: 0.0
-translate_z: 1.0
-rotate_roll: 0.0
-rotate_pitch: 0.0
-rotate_yaw: 0.0
+translate_x: 0.0 # Translate in x axis of the map in NWU
+translate_y: 0.0 # Translate in y axis of the map in NWU
+translate_z: 1.0 # Translate in z axis of the map in NWU
+rotate_roll: 0.0 # Rotate in x axis of the map in NWU
+rotate_pitch: 0.0 # Rotate in y axis of the map in NWU
+rotate_yaw: 0.0 # Rotate in z axis of the map in NWU
 
 # DBSCAN Parameters
-resolution: 0.3
-nearest_min_distance: 5
-min_cluster_pts: 50
-eps: 0.3
+resolution: 0.3 # Resolution of the cluster
+nearest_min_distance: 5 # Minimum distance between each of them
+min_cluster_pts: 50 # How many points is considered as a cluster
+eps: 0.3 # The radius for searching neighbor points of octree
 
 # Crop Parameters
-centroid_x: 0.0
-centroid_y: 0.0
-centroid_z: 5.0
+max_x: 19.7 # Max limit of the crop in x axis in NWU
+max_y: 9.7 # Max limit of the crop in y axis in NWU
+max_z: 6.0 # Max limit of the crop in z axis in NWU
 
-dimension_x: 39.4
-dimension_y: 19.4
-dimension_z: 9.7
+min_x: -19.7 # Min limit of the crop in x axis in NWU
+min_y: -9.7 # Min limit of the crop in y axis in NWU
+min_z: 0.15 # Min limit of the crop in z axis in NWU
 
 # Run Parameters
 spin_once: false
-ros_rate: 2.0
+ros_rate: 0.3
