@@ -4,7 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /PointCloud21
+        - /Wall_PCL1
       Splitter Ratio: 0.6147058606147766
     Tree Height: 349
   - Class: rviz/Selection
@@ -66,9 +66,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 52; 101; 164
-      Max Intensity: 4096
       Min Color: 0; 0; 0
-      Min Intensity: 0
       Name: full_cloud
       Position Transformer: XYZ
       Queue Size: 10
@@ -96,9 +94,7 @@ Visualization Manager:
       Enabled: false
       Invert Rainbow: false
       Max Color: 239; 41; 41
-      Max Intensity: 4096
       Min Color: 0; 0; 0
-      Min Intensity: 0
       Name: altered_cloud
       Position Transformer: XYZ
       Queue Size: 10
@@ -126,9 +122,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 4096
       Min Color: 0; 0; 0
-      Min Intensity: 0
       Name: cluster_cloud
       Position Transformer: XYZ
       Queue Size: 10
@@ -175,8 +169,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 171.1280059814453
-        Min Value: -17.80599021911621
+        Max Value: 3.9000000953674316
+        Min Value: -5.2676185191558034e-8
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -187,15 +181,13 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 4096
       Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: PointCloud2
+      Name: Wall_PCL
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 1
+      Size (m): 0.07999999821186066
       Style: Flat Squares
       Topic: /wall_pcl
       Unreliable: false
@@ -230,25 +222,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 163.34609985351562
+      Distance: 135.44850158691406
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 88.72676849365234
-        Y: -8.42455768585205
-        Z: -29.675559997558594
+        X: 87.83718872070312
+        Y: 6.0671186447143555
+        Z: -31.34617042541504
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.36539769172668457
+      Pitch: 0.36039769649505615
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.093533515930176
+      Yaw: 3.2185323238372803
     Saved: ~
 Window Geometry:
   Displays:

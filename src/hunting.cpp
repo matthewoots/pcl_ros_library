@@ -68,7 +68,7 @@ class hunting_class
 {
 private:
     ros::NodeHandle _nh;
-    ros::Publisher altered_pcl_pub, object_point_pub;
+    ros::Publisher altered_pcl_pub, object_point_pub, full_altered_pcl_pub;
     ros::Subscriber pcl_array_sub;
 
 public:
@@ -82,11 +82,14 @@ public:
 
     sensor_msgs::PointCloud2 pcl_altered;
 
+    sensor_msgs::PointCloud2 full_pcl_altered;
+
     hunting_class(ros::NodeHandle &nodeHandle)
     {
         pcl_array_sub = _nh.subscribe<pcl_ros_lib::pointcloud2_array>("/clustered_array_pcl", 1, &hunting_class::pclCallBack, this);  
         object_point_pub = _nh.advertise<pcl_ros_lib::point_array>("/sub_object_points", 10);
-        altered_pcl_pub = _nh.advertise<sensor_msgs::PointCloud2>("/wall_pcl", 10);    
+        altered_pcl_pub = _nh.advertise<sensor_msgs::PointCloud2>("/wall_pcl", 10);
+        full_altered_pcl_pub = _nh.advertise<sensor_msgs::PointCloud2>("/full_obstacle_pcl", 10);    
 
         printf("%s[hunter.cpp] Constructor Setup Ready! \n", KGRN);
     }
@@ -107,6 +110,13 @@ public:
     {
         pcl_altered.header.frame_id = "/map";
         altered_pcl_pub.publish(pcl_altered); 
+        // printf("%s[main.cpp] Published altered_cloud! \n", KGRN);
+    }
+
+    void full_altered_pcl_publisher() 
+    {
+        full_pcl_altered.header.frame_id = "/map";
+        full_altered_pcl_pub.publish(full_pcl_altered); 
         // printf("%s[main.cpp] Published altered_cloud! \n", KGRN);
     }
 
@@ -156,7 +166,7 @@ double kdtree_nearest_point(Vector3d point, pcl::PointCloud<pcl::PointXYZ>::Ptr 
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_make_wall_with_gap(int height_idx, double height_lower_bound,
     int width_idx, double width_lower_bound,
-    int length_idx, double length_lower_bound, double radius)
+    int length_idx, double length_lower_bound, double radius, double wall_resolution)
 {
     pcl::PointCloud<pcl::PointXYZ>::Ptr wall(new pcl::PointCloud<pcl::PointXYZ>);
     for (int i = 0; i < height_idx; i++)
@@ -166,9 +176,9 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_make_wall_with_gap(int height_idx, doubl
             for (int k = 0; k < length_idx; k++)
             {
                 pcl::PointXYZ point;
-                point.x = width_lower_bound + width_idx*j;
-                point.y = length_lower_bound + length_idx*k;
-                point.z = height_lower_bound + height_idx*i;
+                point.x = width_lower_bound + wall_resolution*j;
+                point.y = length_lower_bound + wall_resolution*k;
+                point.z = height_lower_bound + wall_resolution*i;
 
                 if (pow(point.x,2) + pow(point.y,2) + pow(point.z,2) > pow(radius,2))
                 {
@@ -334,16 +344,16 @@ int main(int argc, char **argv)
                 true_centroid = avg_centroid / query_size;
                 true_yaw = avg_yaw / (double)query_size;
                 printf("%s[hunter.cpp] true_yaw %d: %s %lf \n", KBLU, i, KNRM, true_yaw);
+                printf("%s[hunter.cpp] true_centroid %d: %s %lf %lf %lf \n", KBLU, i, KNRM, true_centroid.x(), true_centroid.y(),
+                    true_centroid.z());
 
                 // Find radius of sphere
                 double sphere_radius = kdtree_nearest_point(true_centroid, cluster[idx[i]]);
                 
                 printf("%s[hunter.cpp] sphere_radius %d: %s %lf \n", KBLU, i, KNRM, sphere_radius);
-                // Add safety region
-                sphere_radius -= 0.15;
 
                 // Let us place the centroid at the origin to make the wall
-                double suggested_height = avg_centroid.z();
+                double suggested_height = true_centroid.z();
                 int height_idx = (int)ceil((_wall_max_height - _wall_min_height) / _wall_resolution);
                 double lower_wall_boundary = - suggested_height + _wall_min_height;
                 // X axis
@@ -360,9 +370,15 @@ int main(int argc, char **argv)
                 // Time to make a wall
                 pcl::PointCloud<pcl::PointXYZ>::Ptr wall_pcl = pcl_make_wall_with_gap(height_idx, lower_wall_boundary,
                     width_idx, lower_width_boundary,
-                    length_idx, lower_length_boundary, sphere_radius);
+                    length_idx, lower_length_boundary, sphere_radius, _wall_resolution);
 
-                pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_wall = _common.base_to_transform_pcl(wall_pcl, Vector3d(0,0,true_yaw), true_centroid);
+                pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_wall_tmp = _common.base_to_transform_pcl(wall_pcl, 
+                    Vector3d(0,0,-true_yaw + 90.0), Vector3d(0,0,0));
+                pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_wall = _common.base_to_transform_pcl(transformed_wall_tmp, 
+                    Vector3d(0,0,0), -true_centroid);
+                
+                // pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_wall = _common.base_to_transform_pcl(wall_pcl, 
+                //     Vector3d(0,0,0), true_centroid);
 
                 hunting_class.altered_cluster_pc.push_back(transformed_wall);
             }
@@ -378,8 +394,32 @@ int main(int argc, char **argv)
                 }
             }
 
+            pcl::PointCloud<pcl::PointXYZ>::Ptr tmp_full_altered_msg = tmp_altered_msg;
+
+            for (int l = 0; l < cluster.size(); l++)
+            {
+                bool repeated_message = false;
+                for (int m = 0; m < idx.size(); m++)
+                {
+                    if (l == m)
+                    {
+                        repeated_message = true;
+                        break;
+                    }
+                }
+                if (!repeated_message)
+                {
+                    for (int m = 0; m < cluster[l]->points.size(); m++)
+                    {
+                        tmp_full_altered_msg->points.push_back(cluster[l]->points[m]);
+                    }
+                }
+            }
+
             hunting_class.pcl_altered = _common.pcl2ros_converter(tmp_altered_msg);
+            hunting_class.full_pcl_altered = _common.pcl2ros_converter(tmp_full_altered_msg);
             hunting_class.altered_pcl_publisher();
+            hunting_class.full_altered_pcl_publisher();
         }
         
         printf("%s[hunting.cpp] height_search centroid size: %s %d\n", KGRN, KNRM, hunting_class.centroid_points.size());

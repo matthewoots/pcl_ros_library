@@ -2,11 +2,15 @@
 
 Pointlcloud library and ros integration for pointcloud manipulation, including **crop**, **transform**, **filter** and **clustering**. From clustering the algorithm allocate **IDs** according to their cluster index. This will help users to further do isolated manipulation according to the relevant IDs. Also added a **rviz** visualization node for quick debugging.
 
+Added `Gap Recognition` so that a hard "wall" can be made to constrain and remove free points around the gap.
+
 **Updates**
 - Crashes do happen when using dynamic_reconfigure and I have removed rotation so please set it in the `pcl_ros_lib.yaml` first before running
 - Do save your dynamic reconfigure setting occasionally while the program is running to prevent lost of data in crashes
 
-![](output.png)
+| Normal | With Gap Recognition |
+| --- | ---|
+|![](output.png) | ![](output3.png) |
 
 **To launch this package simply**
 ```bash
