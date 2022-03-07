@@ -1,0 +1,20 @@
+# Hunting parameters
+height_resolution: 0.35
+start_search_height: 0.5
+final_search_height: 3.0
+
+# DBSCAN Parameters
+resolution: 0.3 # Resolution of the cluster
+nearest_min_distance: 1 # Minimum distance between each of them
+min_cluster_pts: 3 # How many points is considered as a cluster
+eps: 0.3 # The radius for searching neighbor points of octree
+
+# Run Parameters
+ros_rate: 0.3
+
+# Gap Hunter Parameters
+wall_min_height: 0.0
+wall_max_height: 3.0
+wall_length: 6.0
+wall_thickness: 0.3
+wall_resolution: 0.08

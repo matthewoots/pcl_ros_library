@@ -169,8 +169,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 3.9000000953674316
-        Min Value: -5.2676185191558034e-8
+        Max Value: 2.9600000381469727
+        Min Value: -1.2831555373793435e-8
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -187,7 +187,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.07999999821186066
+      Size (m): 0.03999999910593033
       Style: Flat Squares
       Topic: /wall_pcl
       Unreliable: false

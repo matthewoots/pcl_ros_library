@@ -1,13 +1,16 @@
 <launch>
 
+<!-- 0 for more relaxed environments 1 for more tough environments -->
+<arg name="relaxation" value="1"/>
+
 <node pkg="pcl_ros_lib" type="pcl_ros_lib_node" name="pcl_ros_lib_node" output="screen">
-    <param name="file_location" type="string" value="$(find pcl_ros_lib)/data/cloud.pcd"/>
-    <rosparam command="load" file="$(find pcl_ros_lib)/config/pcl_ros_lib.yaml" />
+    <param name="file_location" type="string" value="$(find pcl_ros_lib)/data/cloud_$(arg relaxation).pcd"/>
+    <rosparam command="load" file="$(find pcl_ros_lib)/config/pcl_ros_lib_$(arg relaxation).yaml" />
 </node>
 
 <node pkg="pcl_ros_lib" type="pcl_ros_lib_hunting_node" name="pcl_ros_lib_hunting_node" output="screen">
-    <param name="file_location" type="string" value="$(find pcl_ros_lib)/data/idx.csv"/>
-    <rosparam command="load" file="$(find pcl_ros_lib)/config/pcl_hunter.yaml" />
+    <param name="file_location" type="string" value="$(find pcl_ros_lib)/data/idx_$(arg relaxation).csv"/>
+    <rosparam command="load" file="$(find pcl_ros_lib)/config/pcl_hunter_$(arg relaxation).yaml" />
 </node>
 
 <node pkg="pcl_ros_lib" type="pcl_ros_lib_visualization_node" name="pcl_ros_lib_visualization_node" output="screen"/>
